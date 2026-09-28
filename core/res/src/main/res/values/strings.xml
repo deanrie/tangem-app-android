@@ -1519,6 +1519,12 @@
   <string name="onboarding_seed_intro_title">Use seed phrase</string>
   <string name="onboarding_seed_mnemonic_invalid_checksum">Invalid seed phrase. Please check the word order.</string>
   <string name="onboarding_seed_mnemonic_wrong_words">Invalid seed phrase. Please check your spelling.</string>
+  <string name="onboarding_seed_passphrase_setup_confirm_placeholder">Repeat the passphrase</string>
+  <string name="onboarding_seed_passphrase_setup_mismatch">The passphrases don’t match</string>
+  <string name="onboarding_seed_passphrase_setup_mobile_upgrade_note">A mobile wallet with a passphrase can’t be moved to a Tangem card later.</string>
+  <string name="onboarding_seed_passphrase_setup_toggle">Add a passphrase (advanced)</string>
+  <string name="onboarding_seed_passphrase_setup_warning_message">A passphrase is a second secret. Your seed phrase alone will not restore this wallet, and Tangem cannot recover a passphrase for you. Write it down and keep it apart from the seed phrase.</string>
+  <string name="onboarding_seed_passphrase_setup_warning_title">Lose the passphrase — lose the funds</string>
   <string name="onboarding_seed_phrase_intro_legacy">Legacy</string>
   <string name="onboarding_seed_user_validation_message">To check whether you’ve written down your seed phrase correctly, please enter the 2nd, 7th and 11th words</string>
   <string name="onboarding_seed_user_validation_title">So, let’s check</string>

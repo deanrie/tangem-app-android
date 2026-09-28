@@ -100,13 +100,13 @@ internal class MultiWalletSeedPhraseModel @Inject constructor(
         // =============================================
         // | DON'T FIXME  !!! MODIFY WITH CAUTION !!!  |
         // =============================================
-        importWallet = importWallet@{
+        importWallet = importWallet@{ passphrase ->
             importWallet(
                 mnemonic = when (state.value.generatedWordsType) {
                     GeneratedWordsType.Words12 -> state.value.generatedWords12 ?: return@importWallet
                     GeneratedWordsType.Words24 -> state.value.generatedWords24 ?: return@importWallet
                 },
-                passphrase = null,
+                passphrase = passphrase,
                 generatedSeedPhrase = true,
             )
         },

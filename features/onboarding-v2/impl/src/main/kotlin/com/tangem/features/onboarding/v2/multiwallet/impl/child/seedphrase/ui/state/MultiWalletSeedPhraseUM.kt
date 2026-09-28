@@ -3,6 +3,7 @@ package com.tangem.features.onboarding.v2.multiwallet.impl.child.seedphrase.ui.s
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.text.input.TextFieldValue
 import com.tangem.core.ui.components.bottomsheets.TangemBottomSheetConfig
+import com.tangem.core.ui.components.passphrase.PassphraseSetupUM
 import com.tangem.core.ui.components.grid.entity.EnumeratedTwoColumnGridItem
 import com.tangem.core.ui.extensions.TextReference
 import com.tangem.features.onboarding.v2.common.ui.OnboardingDialogUM
@@ -30,6 +31,8 @@ internal sealed class MultiWalletSeedPhraseUM(
 
     data class GeneratedWordsCheck(
         val wordFields: ImmutableList<WordField> = persistentListOf(),
+        /** Opt-in BIP-39 passphrase for the new wallet; off by default. */
+        val passphraseSetup: PassphraseSetupUM = PassphraseSetupUM(),
         val createWalletButtonEnabled: Boolean = false,
         val createWalletButtonProgress: Boolean = false,
         val onCreateWalletButtonClick: () -> Unit = {},

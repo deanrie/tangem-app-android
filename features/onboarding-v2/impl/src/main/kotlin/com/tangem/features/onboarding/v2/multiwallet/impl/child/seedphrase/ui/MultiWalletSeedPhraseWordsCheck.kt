@@ -22,6 +22,7 @@ import com.tangem.core.ui.components.BasicDialog
 import com.tangem.core.ui.components.DialogButtonUM
 import com.tangem.core.ui.components.OutlineTextField
 import com.tangem.core.ui.components.PrimaryButtonIconEnd
+import com.tangem.core.ui.components.passphrase.PassphraseSetupBlock
 import com.tangem.core.ui.components.fields.contextmenu.DisableContextMenu
 import com.tangem.core.ui.extensions.resolveReference
 import com.tangem.core.ui.extensions.stringResourceSafe
@@ -85,6 +86,11 @@ internal fun MultiWalletSeedPhraseWordsCheck(
                 state = state,
                 modifier = Modifier
                     .padding(vertical = 30.dp, horizontal = 16.dp),
+            )
+
+            PassphraseSetupBlock(
+                state = state.passphraseSetup,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp),
             )
         }
 

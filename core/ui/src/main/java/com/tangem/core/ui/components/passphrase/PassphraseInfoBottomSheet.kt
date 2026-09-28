@@ -1,4 +1,4 @@
-package com.tangem.features.onboarding.v2.multiwallet.impl.child.seedphrase.ui
+package com.tangem.core.ui.components.passphrase
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -20,7 +20,7 @@ import com.tangem.core.ui.components.bottomsheets.TangemBottomSheetConfigContent
 import com.tangem.core.ui.extensions.stringResourceSafe
 import com.tangem.core.ui.res.TangemTheme
 import com.tangem.core.ui.res.TangemThemePreview
-import com.tangem.features.onboarding.v2.impl.R
+import com.tangem.core.ui.R
 
 @Composable
 fun PassphraseInfoBottomSheet(config: TangemBottomSheetConfig) {
