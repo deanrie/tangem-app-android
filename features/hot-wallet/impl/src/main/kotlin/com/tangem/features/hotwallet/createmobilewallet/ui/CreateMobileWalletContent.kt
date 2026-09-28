@@ -24,6 +24,7 @@ import com.tangem.core.ui.components.SecondaryButton
 import com.tangem.core.ui.components.appbar.TangemTopAppBar
 import com.tangem.core.ui.components.appbar.models.TopAppBarButtonUM
 import com.tangem.core.ui.components.feature.FeatureBlock
+import com.tangem.core.ui.components.passphrase.PassphraseSetupBlock
 import com.tangem.core.ui.extensions.TextReference
 import com.tangem.core.ui.extensions.appendColored
 import com.tangem.core.ui.extensions.appendWithStyledPlaceholder
@@ -99,6 +100,10 @@ internal fun CreateMobileWalletContent(state: CreateMobileWalletUM, modifier: Mo
                 description = stringResourceSafe(R.string.hw_create_upgrade_description),
                 iconRes = R.drawable.ic_tangem_card_24,
             )
+            PassphraseSetupBlock(
+                state = state.passphraseSetup,
+                modifier = Modifier.padding(top = 32.dp, bottom = 8.dp),
+            )
         }
         val termsTemplate = stringResourceSafe(R.string.onboarding_create_wallet_term_of_conditions_text)
         val termsLinkText = stringResourceSafe(R.string.disclaimer_title)
@@ -149,6 +154,7 @@ internal fun CreateMobileWalletContent(state: CreateMobileWalletUM, modifier: Mo
                 ),
             text = stringResourceSafe(R.string.onboarding_create_wallet_button_create_wallet),
             showProgress = state.createButtonLoading,
+            enabled = state.createButtonEnabled,
             onClick = state.onCreateClick,
         )
     }

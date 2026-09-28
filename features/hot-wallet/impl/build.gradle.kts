@@ -55,7 +55,8 @@ dependencies {
     implementation(tangemDeps.card.android) {
         exclude(module = "joda-time")
     }
-    runtimeOnly(tangemDeps.hot.android)
+    // `PassphraseValidator` (live validation of the opt-in passphrase on wallet creation)
+    implementation(tangemDeps.hot.android)
 
     /** AndroidX libraries */
     implementation(deps.androidx.annotation)

@@ -23,6 +23,10 @@ import com.tangem.features.hotwallet.CreateMobileWalletComponent
 import com.tangem.features.hotwallet.HotWalletFeatureToggles
 import com.tangem.features.hotwallet.createmobilewallet.entity.CreateMobileWalletUM
 import com.tangem.features.hotwallet.createmobilewallet.importoptions.ImportOptionsBottomSheetConfig
+import androidx.compose.ui.text.input.TextFieldValue
+import com.tangem.core.ui.components.bottomsheets.TangemBottomSheetConfig
+import com.tangem.core.ui.components.passphrase.PassphraseSetupUM
+import com.tangem.features.hotwallet.MnemonicRepository
 import com.tangem.hot.sdk.TangemHotSdk
 import com.tangem.hot.sdk.model.HotAuth
 import com.tangem.hot.sdk.model.MnemonicType
@@ -52,7 +56,10 @@ internal class CreateMobileWalletModel @Inject constructor(
     private val analyticsEventHandler: AnalyticsEventHandler,
     private val appsFlyerStore: AppsFlyerStore,
     private val hotWalletFeatureToggles: HotWalletFeatureToggles,
+    private val mnemonicRepository: MnemonicRepository,
 ) : Model() {
+
+    private val passphraseValidator = hotSdkPassphraseSetupValidator()
 
     private val params: CreateMobileWalletComponent.Params = paramsContainer.require()
 
@@ -65,6 +72,13 @@ internal class CreateMobileWalletModel @Inject constructor(
                 onImportClick = ::onImportClick,
                 onCreateClick = ::onCreateClick,
                 createButtonLoading = false,
+                passphraseSetup = PassphraseSetupUM(
+                    showsMobileUpgradeNote = true,
+                    onEnabledChange = ::onPassphraseEnabledChange,
+                    onPassphraseChange = { value -> updatePassphrase { it.copy(passphrase = value) } },
+                    onConfirmationChange = { value -> updatePassphrase { it.copy(confirmation = value) } },
+                    onInfoClick = ::showPassphraseInfo,
+                ),
                 onTermsClick = { router.push(AppRoute.Disclaimer(isTosAccepted = true)) },
             ),
         )
@@ -115,6 +129,11 @@ internal class CreateMobileWalletModel @Inject constructor(
     }
 
     private fun onCreateClick() {
+        val currentState = uiState.value
+        if (!currentState.createButtonEnabled) return
+        // Read once, up front: the fields are cleared if the user toggles the option off while we run.
+        val passphrase = currentState.passphraseSetup.resolvedPassphrase
+
         analyticsEventHandler.send(OnboardingAnalyticsEvent.CreateWallet.ButtonCreateWallet())
         checkHotWalletCreationSupported(notSupported = { return })
 
@@ -124,7 +143,17 @@ internal class CreateMobileWalletModel @Inject constructor(
             }
 
             runSuspendCatching {
-                val hotWalletId = tangemHotSdk.generateWallet(HotAuth.NoAuth, mnemonicType = MnemonicType.Words12)
+                val hotWalletId = if (passphrase == null) {
+                    tangemHotSdk.generateWallet(HotAuth.NoAuth, mnemonicType = MnemonicType.Words12)
+                } else {
+                    // The SDK has no `generateWallet(passphrase)`: generate the phrase the same way the card
+                    // onboarding does and import it with the passphrase.
+                    tangemHotSdk.importWallet(
+                        mnemonic = mnemonicRepository.generateMnemonic(MnemonicRepository.MnemonicType.Words12),
+                        passphrase = passphrase.toCharArray(),
+                        auth = HotAuth.NoAuth,
+                    )
+                }
                 val hotUserWalletBuilder = hotUserWalletBuilderFactory.create(hotWalletId)
                 val userWallet = hotUserWalletBuilder.build()
 
@@ -138,7 +167,11 @@ internal class CreateMobileWalletModel @Inject constructor(
                         source = params.source,
                         creationType = AnalyticsParam.WalletCreationType.NewSeed,
                         seedPhraseLength = SEED_PHRASE_LENGTH,
-                        passPhraseState = AnalyticsParam.EmptyFull.Empty,
+                        passPhraseState = if (passphrase == null) {
+                            AnalyticsParam.EmptyFull.Empty
+                        } else {
+                            AnalyticsParam.EmptyFull.Full
+                        },
                         referralId = appsFlyerStore.get()?.refcode,
                     ),
                 )
@@ -153,6 +186,54 @@ internal class CreateMobileWalletModel @Inject constructor(
 
                 uiState.update { it.copy(createButtonLoading = false) }
             }
+        }
+    }
+
+    /** Turning the option off discards whatever was typed so nothing stale is derived with later. */
+    private fun onPassphraseEnabledChange(enabled: Boolean) {
+        updatePassphrase {
+            if (enabled) {
+                it.copy(enabled = true)
+            } else {
+                it.copy(enabled = false, passphrase = TextFieldValue(""), confirmation = TextFieldValue(""))
+            }
+        }
+    }
+
+    private fun updatePassphrase(block: (PassphraseSetupUM) -> PassphraseSetupUM) {
+        uiState.update { state ->
+            val setup = block(state.passphraseSetup)
+            val validation = passphraseValidator.validate(
+                enabled = setup.enabled,
+                passphrase = setup.passphrase.text,
+                confirmation = setup.confirmation.text,
+            )
+
+            state.copy(
+                passphraseSetup = setup.copy(isValid = validation.isValid, errorText = validation.errorText),
+                createButtonEnabled = validation.isValid,
+            )
+        }
+    }
+
+    private fun showPassphraseInfo() {
+        uiState.update { state ->
+            state.copy(
+                passphraseSetup = state.passphraseSetup.copy(
+                    infoBottomSheetConfig = TangemBottomSheetConfig.Empty.copy(
+                        isShown = true,
+                        onDismissRequest = {
+                            uiState.update { inner ->
+                                inner.copy(
+                                    passphraseSetup = inner.passphraseSetup.copy(
+                                        infoBottomSheetConfig = TangemBottomSheetConfig.Empty,
+                                    ),
+                                )
+                            }
+                        },
+                    ),
+                ),
+            )
         }
     }
 
