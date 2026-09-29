@@ -199,10 +199,12 @@ class TonConnectTransferBuilder(
         ).roots.single()
 
         /**
-         * Cheap structural check that a dApp-supplied cell can be read as `StateInit`
-         * (`split_depth:(Maybe (## 5)) special:(Maybe TickTock) code:(Maybe ^Cell) data:(Maybe ^Cell) library:(HashmapE 256 SimpleLib)`).
+         * Cheap structural check that a dApp-supplied cell is a `StateInit` this wallet will forward
+         * (`split_depth:(Maybe (## 5)) special:(Maybe TickTock) code:(Maybe ^Cell) data:(Maybe ^Cell) library:(HashmapE 256 SimpleLib)`)
+         * with an *empty* library dictionary — libraries are exotic cells, which `TonConnectBoc` rejects anyway, and a
+         * hostile `HashmapE` is never handed to a dictionary parser. The cell itself is only ever copied bit-for-bit.
          */
-        internal fun isStateInitShaped(cell: Cell): Boolean {
+        internal fun isForwardableStateInit(cell: Cell): Boolean {
             return runCatching {
                 val slice = cell.beginParse()
                 var refsNeeded = 0
@@ -210,7 +212,7 @@ class TonConnectTransferBuilder(
                 if (slice.loadBit()) slice.loadBits(2) // special: TickTock
                 if (slice.loadBit()) refsNeeded++ // code
                 if (slice.loadBit()) refsNeeded++ // data
-                if (slice.loadBit()) refsNeeded++ // library: non-empty HashmapE root ref
+                if (slice.loadBit()) return@runCatching false // library must be empty
                 cell.refs.size == refsNeeded && slice.remainingBits == 0
             }.getOrDefault(false)
         }

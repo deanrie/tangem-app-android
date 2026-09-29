@@ -56,7 +56,7 @@ internal class TonConnectTransferBuilderTest {
         // ton-kotlin orders cells and omits the CRC differently from TonSwift; the cell trees are identical.
         assertThat(TonCells.hash(rootOf(boc)).toHex()).isEqualTo(TonCells.hash(rootOf(Vectors.WALLET_STATE_INIT_BOC)).toHex())
         assertThat(TonCells.hash(rootOf(boc)).toHex()).isEqualTo(builder.address.hash.toHex())
-        assertThat(TonConnectTransferBuilder.isStateInitShaped(rootOf(boc))).isTrue()
+        assertThat(TonConnectTransferBuilder.isForwardableStateInit(rootOf(boc))).isTrue()
     }
 
     @Test

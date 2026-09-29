@@ -20,6 +20,13 @@ object TonConnectBoc {
     /** Upper bound on the number of cells in one BoC. */
     const val MAX_CELL_COUNT: Int = 4096
 
+    /**
+     * Upper bound on the depth of the cell tree. Real payloads are a handful of levels deep (a jetton transfer is 3,
+     * a DEX swap about 6); cell libraries hash and serialise trees recursively, and a chain a few hundred cells deep
+     * can overflow a worker thread's stack. Refusing anything deeper than 64 keeps that path unreachable from a dApp.
+     */
+    const val MAX_DEPTH: Int = 64
+
     private const val MAGIC = 0xB5EE9C72L
 
     /** Decodes a base64 (standard or url-safe alphabet) BoC that must contain exactly one root cell. */
@@ -60,6 +67,7 @@ object TonConnectBoc {
         BAD_LEVEL("non-zero level is not supported"),
         BAD_REF_INDEX("ref index is not a forward reference"),
         UNSUPPORTED_EXOTIC("exotic cells are not supported"),
+        TOO_DEEP("cell tree is too deep"),
         TRAILING_BYTES("trailing bytes after BoC"),
     }
 
@@ -103,6 +111,9 @@ object TonConnectBoc {
         if (totalCellSize < 0 || totalCellSize > cursor.remaining) throw PreflightException(PreflightReason.TRUNCATED)
         val cellDataEnd = cursor.position + totalCellSize.toInt()
 
+        // Refs only point forward, so the depth of every cell follows from its refs in a single reverse pass.
+        val refsOf = Array(cellCount.toInt()) { IntArray(0) }
+
         for (index in 0 until cellCount.toInt()) {
             val d1 = cursor.readByte()
             val d2 = cursor.readByte()
@@ -118,15 +129,22 @@ object TonConnectBoc {
 
             cursor.skip((d2 + 1) / 2)
 
-            repeat(refCount) {
+            refsOf[index] = IntArray(refCount) {
                 val ref = cursor.readUInt(refByteCount)
                 if (ref <= index || ref >= cellCount) throw PreflightException(PreflightReason.BAD_REF_INDEX)
+                ref.toInt()
             }
 
             if (cursor.position > cellDataEnd) throw PreflightException(PreflightReason.BAD_CELL_DATA_SIZE)
         }
 
         if (cursor.position != cellDataEnd) throw PreflightException(PreflightReason.BAD_CELL_DATA_SIZE)
+
+        val depth = IntArray(cellCount.toInt())
+        for (index in cellCount.toInt() - 1 downTo 0) {
+            depth[index] = (refsOf[index].maxOfOrNull { depth[it] } ?: -1) + 1
+            if (depth[index] > MAX_DEPTH) throw PreflightException(PreflightReason.TOO_DEEP)
+        }
 
         if (hasCrc32c) cursor.skip(4)
 

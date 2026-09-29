@@ -92,8 +92,8 @@ class TonConnectDeepLinkParser {
         null, "back" -> TonConnectDeepLink.ReturnStrategy.Back
         "none" -> TonConnectDeepLink.ReturnStrategy.None
         else -> {
-            val scheme = runCatching { URI(raw).scheme }.getOrNull()
-            if (scheme != null) TonConnectDeepLink.ReturnStrategy.Url(raw) else TonConnectDeepLink.ReturnStrategy.Back
+            val scheme = runCatching { URI(raw).scheme }.getOrNull()?.lowercase()
+            if (scheme in ALLOWED_RETURN_URL_SCHEMES) TonConnectDeepLink.ReturnStrategy.Url(raw) else TonConnectDeepLink.ReturnStrategy.Back
         }
     }
 
@@ -126,12 +126,22 @@ class TonConnectDeepLinkParser {
         return result
     }
 
-    private fun decode(component: String): String =
+    private fun decode(component: String): String = try {
         URLDecoder.decode(component.replace("+", "%2B"), Charsets.UTF_8.name())
+    } catch (e: IllegalArgumentException) {
+        throw TonConnectException.MalformedConnectRequest("URL query is not valid percent-encoding")
+    }
 
     companion object {
         const val UNIFIED_SCHEME = "tc"
         const val SUPPORTED_PROTOCOL_VERSION = TonConnectDeviceInfo.SUPPORTED_PROTOCOL_VERSION
+
+        /**
+         * Schemes a custom `ret` URL may use. The wallet opens `ret` after the user acts, so an arbitrary scheme
+         * (`tel:`, `sms:`, another wallet's scheme…) would let a dApp launch things on the user's behalf; only web and
+         * Telegram return targets are meaningful.
+         */
+        val ALLOWED_RETURN_URL_SCHEMES: Set<String> = setOf("https", "http", "tg")
 
         private const val PARAM_VERSION = "v"
         private const val PARAM_CLIENT_ID = "id"

@@ -42,7 +42,7 @@ internal class TonConnectSessionTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = ["", "abc", "-1", "1.0", "0x10", "+1"])
+    @ValueSource(strings = ["", "abc", "-1", "1.0", "0x10", "+1", "99999999999999999999999999999999999999999999999999999999999999999"])
     fun `GIVEN non-integer request id WHEN accepting THEN BadRequest is thrown`(id: String) {
         assertThrows<TonConnectException.BadRequest> { session.acceptingRequest(id) }
     }

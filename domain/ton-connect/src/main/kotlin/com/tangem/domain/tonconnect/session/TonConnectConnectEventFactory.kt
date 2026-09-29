@@ -50,12 +50,21 @@ class TonConnectConnectEventFactory(
 
         val replies = request.items.map { item ->
             when (item) {
-                is TonConnectConnectItem.TonAddress -> TonConnectConnectItemReply.TonAddress(
+                is TonConnectConnectItem.TonAddress -> {
+                    // The dApp may pin the network it wants; connecting a mainnet account to a testnet dApp
+                    // (or vice versa) must be refused, not silently answered with the wallet's network.
+                    if (item.network != null && item.network != network) {
+                        throw TonConnectException.BadRequest(
+                            "requested network ${item.network} does not match the wallet network $network",
+                        )
+                    }
+                    TonConnectConnectItemReply.TonAddress(
                     address = account.address,
                     network = network,
                     publicKey = account.publicKey,
                     walletStateInit = transferBuilder.stateInitBoc(),
-                )
+                    )
+                }
                 is TonConnectConnectItem.TonProof -> TonConnectConnectItemReply.TonProof(
                     TonConnectProofMessage.makeProof(
                         address = address,

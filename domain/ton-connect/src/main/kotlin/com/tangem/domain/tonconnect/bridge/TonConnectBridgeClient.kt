@@ -14,6 +14,7 @@ import okhttp3.Callback
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
+import java.io.EOFException
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.resume
@@ -81,7 +82,14 @@ class TonConnectBridgeClient(
 
             while (true) {
                 currentCoroutineContext().ensureActive()
-                val line = source.readUtf8Line() ?: break
+                // Bounded read: a stream that never sends `\n` must not grow the wallet's memory. A line longer than
+                // the cap (or a stream cut mid-line) ends the subscription; the caller reconnects with `last_event_id`.
+                if (source.exhausted()) break
+                val line = try {
+                    source.readUtf8LineStrict(MAX_LINE_BYTE_COUNT)
+                } catch (e: EOFException) {
+                    break
+                }
                 val event = parser.feed(line) ?: continue
                 if (event.isHeartbeat) continue
                 runCatching { TonConnectBridgeMessage.decode(event.data, event.id) }
@@ -111,7 +119,10 @@ class TonConnectBridgeClient(
         continuation.invokeOnCancellation { cancel() }
     }
 
-    private companion object {
-        const val POST_TIMEOUT_SECONDS = 30L
+    companion object {
+        private const val POST_TIMEOUT_SECONDS = 30L
+
+        /** Upper bound on one SSE line; the bridge's own message-size limit is far below this. */
+        const val MAX_LINE_BYTE_COUNT: Long = 1024L * 1024L
     }
 }

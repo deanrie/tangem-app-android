@@ -31,10 +31,33 @@ data class TonConnectManifest(
         return host
     }
 
+    /**
+     * `true` when the manifest was fetched from the domain it claims (`manifestUrl` host equals `url` host or is a
+     * subdomain of it).
+     *
+     * The spec lets a dApp host its manifest anywhere, and CDN / GitHub-hosted manifests are common, so a mismatch is
+     * not an error. It is, however, the exact shape of a `ton_proof` phishing attempt: a manifest served from
+     * `attacker.example` that claims `url: https://real-dapp.example` makes the wallet sign a login proof for the real
+     * dApp's domain with the attacker's nonce. The UI should show the serving host prominently (and warn) when this
+     * returns `false`.
+     */
+    fun isServedFromAppDomain(manifestUrl: String): Boolean {
+        val appDomain = runCatching { appDomain() }.getOrNull() ?: return false
+        val servingHost = runCatching { URI(manifestUrl).host }.getOrNull()?.lowercase() ?: return false
+        return servingHost == appDomain || servingHost.endsWith(".$appDomain")
+    }
+
     companion object {
+
+        /** Upper bound on a manifest body; keeps a hostile `manifestUrl` from feeding the JSON parser megabytes. */
+        const val MAX_BYTE_COUNT: Int = 64 * 1024
 
         /** Decodes a manifest body and applies the content rules of `spec/manifest.md`. */
         fun decode(body: String): TonConnectManifest {
+            if (body.length > MAX_BYTE_COUNT) {
+                throw TonConnectException.ManifestContentError("manifest exceeds $MAX_BYTE_COUNT bytes")
+            }
+
             val json = TonConnectJson.parseObjectOrNull(body)
                 ?: throw TonConnectException.ManifestContentError("not a valid manifest JSON")
 
@@ -60,7 +83,9 @@ data class TonConnectManifest(
 
         internal fun isValidAppDomain(host: String): Boolean {
             val labels = host.split('.')
-            return labels.size >= 2 && labels.all { it.isNotEmpty() }
+            if (labels.size < 2 || labels.any { it.isEmpty() }) return false
+            // A dotted IPv4 literal is not a domain name.
+            return !labels.all { label -> label.all(Char::isDigit) }
         }
     }
 }

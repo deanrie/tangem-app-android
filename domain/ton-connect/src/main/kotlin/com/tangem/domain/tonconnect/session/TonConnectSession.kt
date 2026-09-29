@@ -63,5 +63,10 @@ data class TonConnectSession(
     fun allocatingEventId(): Pair<Int, TonConnectSession> = nextEventId to copy(nextEventId = nextEventId + 1)
 
     private fun String.toUnsignedBigIntegerOrNull(): BigInteger? =
-        takeIf { it.isNotEmpty() && it.all(Char::isDigit) }?.toBigIntegerOrNull()
+        takeIf { it.isNotEmpty() && it.length <= MAX_REQUEST_ID_LENGTH && it.all(Char::isDigit) }?.toBigIntegerOrNull()
+
+    companion object {
+        /** Longest request id accepted (the reference SDK sends 13-digit millisecond timestamps). */
+        const val MAX_REQUEST_ID_LENGTH: Int = 64
+    }
 }

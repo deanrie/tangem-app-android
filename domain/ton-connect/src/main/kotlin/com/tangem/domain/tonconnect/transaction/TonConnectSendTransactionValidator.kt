@@ -86,7 +86,7 @@ class TonConnectSendTransactionValidator(
 
         return TonConnectValidatedTransaction(
             validUntil = validUntil,
-            messages = messages.mapIndexed { index, message -> validate(message, index) },
+            messages = messages.mapIndexed { index, message -> validate(message, index, account) },
         )
     }
 
@@ -100,7 +100,11 @@ class TonConnectSendTransactionValidator(
     }
 
     @Suppress("ThrowsCount")
-    private fun validate(message: TonConnectSendTransactionPayload.Message, index: Int): TonConnectValidatedTransaction.Message {
+    private fun validate(
+        message: TonConnectSendTransactionPayload.Message,
+        index: Int,
+        account: TonConnectWalletAccount,
+    ): TonConnectValidatedTransaction.Message {
         val field = "messages[$index]"
 
         // The spec requires the user-friendly form: it carries the bounce flag the wallet must honour.
@@ -110,6 +114,11 @@ class TonConnectSendTransactionValidator(
 
         val friendly = runCatching { TonAddress.parseFriendly(message.address) }.getOrNull()
             ?: throw TonConnectException.BadRequest("$field.address is not a valid TON address")
+
+        // A test-only address (tag 0x80) must never receive mainnet funds.
+        if (friendly.isTestOnly && account.network == TonConnectNetworkId.MAINNET) {
+            throw TonConnectException.BadRequest("$field.address is a test-only address, the connected account is on mainnet")
+        }
 
         val amount = message.amount.takeIf { it.isNotEmpty() && it.all(Char::isDigit) }?.toBigIntegerOrNull()
             ?: throw TonConnectException.BadRequest("$field.amount must be a non-negative decimal string of nanocoins")
@@ -126,7 +135,7 @@ class TonConnectSendTransactionValidator(
         val payload = message.payload?.let { TonConnectBoc.singleRootCell(it, "$field.payload") }
         val stateInit = message.stateInit?.let { TonConnectBoc.singleRootCell(it, "$field.stateInit") }
 
-        if (stateInit != null && !TonConnectTransferBuilder.isStateInitShaped(stateInit)) {
+        if (stateInit != null && !TonConnectTransferBuilder.isForwardableStateInit(stateInit)) {
             throw TonConnectException.BadRequest("$field.stateInit is not a valid StateInit cell")
         }
 
