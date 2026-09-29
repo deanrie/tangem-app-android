@@ -98,6 +98,7 @@ kotlinDatetime = "0.6.2"
 arrow = "1.2.4" # 2.0.1 breaks the build
 reownCore = "1.4.11"
 reownWeb3 = "1.4.11"
+tonKotlin = "0.3.1" # same version blockchain-sdk-kotlin pins, already on the app classpath transitively
 okHttp-prettyLogging = "3.1.0"
 chucker = "4.2.0"
 mlKit-barcodeScanning = "17.3.0"
@@ -328,6 +329,7 @@ arrow-atomic = { module = "io.arrow-kt:arrow-atomic", version.ref = "arrow" }
 arrow-fx = { module = "io.arrow-kt:arrow-fx-coroutines", version.ref = "arrow" }
 reownCore = { module = "com.reown:android-core", version.ref = "reownCore" }
 reownWeb3 = { module = "com.reown:walletkit", version.ref = "reownWeb3" }
+ton-kotlin-tvm = { module = "org.ton:ton-kotlin-tvm", version.ref = "tonKotlin" }
 chucker = { module = "com.github.chuckerteam.chucker:library", version.ref = "chucker" }
 chuckerStub = { module = "com.github.chuckerteam.chucker:library-no-op", version.ref = "chucker" }
 mlKit-barcodeScanning = { module = "com.google.mlkit:barcode-scanning", version.ref = "mlKit-barcodeScanning" }
