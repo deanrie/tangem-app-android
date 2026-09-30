@@ -8,6 +8,7 @@ import com.tangem.core.analytics.api.AnalyticsExceptionHandler
 import com.tangem.data.walletconnect.DefaultWalletConnectRepository
 import com.tangem.data.walletconnect.initialize.DefaultWcInitializeUseCase
 import com.tangem.data.walletconnect.network.bitcoin.WcBitcoinNetwork
+import com.tangem.data.walletconnect.network.hedera.WcHederaNetwork
 import com.tangem.data.walletconnect.network.ethereum.WcEthNetwork
 import com.tangem.data.walletconnect.network.solana.WcSolanaNetwork
 import com.tangem.data.walletconnect.pair.*
@@ -187,6 +188,22 @@ internal object WalletConnectDataModule {
 
     @Provides
     @Singleton
+    fun wcHederaNetwork(
+        @SdkMoshi moshi: Moshi,
+        wcNetworksConverter: WcNetworksConverter,
+        sessionsManager: WcSessionsManager,
+        factories: WcHederaNetwork.Factories,
+        respondService: WcRespondService,
+    ): WcHederaNetwork = WcHederaNetwork(
+        moshi = moshi,
+        sessionsManager = sessionsManager,
+        factories = factories,
+        networksConverter = wcNetworksConverter,
+        respondService = respondService,
+    )
+
+    @Provides
+    @Singleton
     fun caipNamespaceDelegate(
         namespaceConverters: Set<@JvmSuppressWildcards WcNamespaceConverter>,
         wcNetworksConverter: WcNetworksConverter,
@@ -225,6 +242,7 @@ internal object WalletConnectDataModule {
         ethNetwork: WcEthNetwork,
         solanaNetwork: WcSolanaNetwork,
         bitcoinNetwork: WcBitcoinNetwork,
+        hederaNetwork: WcHederaNetwork,
         featureToggles: WalletConnectFeatureToggles,
     ) = DiHelperBox(
         handlers = buildSet {
@@ -232,6 +250,9 @@ internal object WalletConnectDataModule {
             add(solanaNetwork)
             if (featureToggles.isBitcoinEnabled) {
                 add(bitcoinNetwork)
+            }
+            if (featureToggles.isHederaEnabled) {
+                add(hederaNetwork)
             }
         },
     )
@@ -242,12 +263,16 @@ internal object WalletConnectDataModule {
         ethNamespaceConverter: WcEthNetwork.NamespaceConverter,
         solanaNamespaceConverter: WcSolanaNetwork.NamespaceConverter,
         bitcoinNamespaceConverter: WcBitcoinNetwork.NamespaceConverter,
+        hederaNamespaceConverter: WcHederaNetwork.NamespaceConverter,
         featureToggles: WalletConnectFeatureToggles,
     ): Set<@JvmSuppressWildcards WcNamespaceConverter> = buildSet {
         add(ethNamespaceConverter)
         add(solanaNamespaceConverter)
         if (featureToggles.isBitcoinEnabled) {
             add(bitcoinNamespaceConverter)
+        }
+        if (featureToggles.isHederaEnabled) {
+            add(hederaNamespaceConverter)
         }
     }
 
@@ -281,6 +306,14 @@ internal object WalletConnectDataModule {
         excludedBlockchains: ExcludedBlockchains,
     ): WcBitcoinNetwork.NamespaceConverter {
         return WcBitcoinNetwork.NamespaceConverter(excludedBlockchains)
+    }
+
+    @Provides
+    @Singleton
+    fun wcHederaNetworkNamespaceConverter(
+        excludedBlockchains: ExcludedBlockchains,
+    ): WcHederaNetwork.NamespaceConverter {
+        return WcHederaNetwork.NamespaceConverter(excludedBlockchains)
     }
 
     @Provides

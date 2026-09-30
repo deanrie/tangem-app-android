@@ -3288,6 +3288,9 @@
   <string name="wc_common_connect">Connect</string>
   <string name="wc_common_loading">Loading</string>
   <string name="wc_common_network">Network</string>
+  <string name="wc_hedera_max_fee">Max fee</string>
+  <string name="wc_hedera_payer">Fee payer</string>
+  <string name="wc_hedera_transaction_type">Type</string>
   <string name="wc_common_networks">Networks</string>
   <string name="wc_common_unlimited">Unlimited</string>
   <string name="wc_common_wallet">Wallet</string>

@@ -22,6 +22,9 @@ dependencies {
     ksp(deps.moshi.kotlin.codegen)
     implementation(deps.jodatime)
     implementation(deps.okio)
+    // Hedera SDK (bundled in tangemDeps.blockchain) exposes protobuf-java types; the runtime copy comes with it.
+    compileOnly(deps.protobuf.java)
+    testCompileOnly(deps.protobuf.java)
     // endregion
 
     // region Reown - WalletConnect

@@ -8,6 +8,7 @@ import com.tangem.domain.core.lce.LceFlow
 import com.tangem.domain.models.network.Network
 import com.tangem.domain.walletconnect.model.WcBitcoinMethod
 import com.tangem.domain.walletconnect.model.WcEthMethod
+import com.tangem.domain.walletconnect.model.WcHederaMethod
 import com.tangem.domain.walletconnect.model.WcMethod
 import com.tangem.domain.walletconnect.model.WcSession
 import com.tangem.domain.walletconnect.model.WcSolanaMethod
@@ -43,6 +44,7 @@ internal class BlockAidVerificationDelegate @Inject constructor(
             is WcEthMethod -> rawSdkRequest.request.method
             is WcSolanaMethod -> method.trimmedPrefixMethodName
             is WcBitcoinMethod -> rawSdkRequest.request.method
+            is WcHederaMethod -> rawSdkRequest.request.method
             is WcMethod.Unsupported -> {
                 emit(Lce.Content(failedResult))
                 return@flow
@@ -59,9 +61,9 @@ internal class BlockAidVerificationDelegate @Inject constructor(
                 emit(Lce.Content(createSafeResult()))
                 return@flow
             }
-            is WcBitcoinMethod -> {
-                // BlockAid doesn't support Bitcoin methods: don't synthesize a SAFE result for an unscanned
-                // transaction
+            is WcBitcoinMethod, is WcHederaMethod -> {
+                // BlockAid doesn't support Bitcoin or Hedera methods: don't synthesize a SAFE result for an
+                // unscanned transaction
                 emit(Lce.Content(failedResult))
                 return@flow
             }

@@ -146,6 +146,7 @@ internal class WcSignTransactionModel @Inject constructor(
             is WcEthMethod.MessageSign,
             is WcSolanaMethod.SignMessage,
             is com.tangem.domain.walletconnect.model.WcBitcoinMethod.SignMessage,
+            is com.tangem.domain.walletconnect.model.WcHederaMethod.SignMessage,
             -> signTransactionUMConverter.convert(
                 WcSignTransactionUMConverter.Input(
                     context = useCase,

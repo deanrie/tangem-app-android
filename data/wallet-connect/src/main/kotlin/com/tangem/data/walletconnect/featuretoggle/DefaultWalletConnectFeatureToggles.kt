@@ -10,4 +10,7 @@ internal class DefaultWalletConnectFeatureToggles(
 
     override val isBitcoinEnabled: Boolean
         get() = featureTogglesManager.isFeatureEnabled(FeatureToggles.WALLET_CONNECT_BITCOIN_ENABLED)
+
+    override val isHederaEnabled: Boolean
+        get() = featureTogglesManager.isFeatureEnabled(FeatureToggles.AND_91_WALLET_CONNECT_HEDERA_ENABLED)
 }

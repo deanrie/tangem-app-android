@@ -14,6 +14,12 @@ interface WcRequestToUseCaseConverter {
     fun toWcMethodName(request: WcSdkSessionRequest): WcMethodName?
     suspend fun toUseCase(request: WcSdkSessionRequest): Either<HandleMethodError, WcMethodUseCase>
 
+    /**
+     * Read-only methods that involve neither keys nor user data (e.g. `hedera_getNodeAddresses`) may be answered
+     * here, before the request reaches the UI queue. Return `true` when the request has been responded to.
+     */
+    fun respondWithoutUserInteraction(request: WcSdkSessionRequest): Boolean = false
+
     companion object {
         @OptIn(ExperimentalStdlibApi::class)
         inline fun <reified T> Moshi.fromJson(params: String): Either<Throwable, T?> {

@@ -44,6 +44,10 @@
         "version": "undefined"
     },
     {
+        "name": "AND_91_WALLET_CONNECT_HEDERA_ENABLED",
+        "version": "undefined"
+    },
+    {
         "name": "TWI_1326_YIELD_DEX_TRANSFER_ENABLED",
         "version": "undefined"
     },

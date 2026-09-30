@@ -43,6 +43,9 @@ internal class DefaultWcRequestService(
         if (name is WcMethodName.Unsupported) {
             respondService.rejectRequestNonBlock(sr)
             if (name.raw.startsWith("wallet_")) return
+        } else if (requestConverters.any { it.respondWithoutUserInteraction(sr) }) {
+            TangemLogger.withTag(WC_TAG).i("handled request $name without user interaction")
+            return
         }
 
         _wcRequest.trySend(name to sr)

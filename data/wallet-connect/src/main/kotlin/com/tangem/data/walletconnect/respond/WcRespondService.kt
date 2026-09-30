@@ -8,6 +8,9 @@ interface WcRespondService {
     suspend fun respond(request: WcSdkSessionRequest, response: String): Either<WcRequestError, String>
     fun rejectRequestNonBlock(request: WcSdkSessionRequest, message: String = "")
 
+    /** Fire-and-forget success reply, for read-only methods answered without user interaction. */
+    fun respondNonBlock(request: WcSdkSessionRequest, response: String)
+
     /**
      * Returns `true` only if [request] is still actionable right now: its session is still active
      * and the request itself is still pending (not expired and not already responded). A `false`

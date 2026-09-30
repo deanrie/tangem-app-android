@@ -29,6 +29,7 @@ internal class WcSendTransactionUMConverter @Inject constructor(
     private val requestBlockUMConverter: WcTransactionRequestBlockUMConverter,
     private val btcSendTransferRequestInfoConverter: WcBtcSendTransferRequestInfoConverter,
     private val signPsbtRequestInfoConverter: WcSignPsbtRequestInfoConverter,
+    private val hederaTransactionRequestInfoConverter: WcHederaTransactionRequestInfoConverter,
     private val notificationsFactory: WcNotificationsFactory,
 ) : Converter<WcSendTransactionUMConverter.Input, WcSendTransactionUM?> {
 
@@ -47,6 +48,8 @@ internal class WcSendTransactionUMConverter @Inject constructor(
             is WcBitcoinMethod.SignPsbt,
             is WcSolanaMethod.SignAndSendTransaction,
             is WcBitcoinMethod.SignMessage,
+            is WcHederaMethod.SignAndExecuteTransaction,
+            is WcHederaMethod.SignTransaction,
             -> WcSendTransactionUM(
                 transaction = WcSendTransactionItemUM(
                     onDismiss = value.actions.onDismiss,
@@ -90,6 +93,8 @@ internal class WcSendTransactionUMConverter @Inject constructor(
             is WcEthMethod.SwitchEthereumChain,
             is WcMethod.Unsupported,
             is WcSolanaMethod.SignMessage,
+            is WcHederaMethod.SignMessage,
+            WcHederaMethod.GetNodeAddresses,
             -> null
         }
     }
@@ -106,6 +111,22 @@ internal class WcSendTransactionUMConverter @Inject constructor(
                 btcSendTransferRequestInfoConverter.convert(
                     WcBtcSendTransferRequestInfoConverter.Input(
                         method = method,
+                        decimals = value.cryptoCurrencyStatus.currency.decimals,
+                        symbol = value.cryptoCurrencyStatus.currency.symbol,
+                    ),
+                ),
+            )
+        }
+        val hederaSummary = when (method) {
+            is WcHederaMethod.SignAndExecuteTransaction -> method.summary
+            is WcHederaMethod.SignTransaction -> method.summary
+            else -> null
+        }
+        if (hederaSummary != null) {
+            add(
+                hederaTransactionRequestInfoConverter.convert(
+                    WcHederaTransactionRequestInfoConverter.Input(
+                        summary = hederaSummary,
                         decimals = value.cryptoCurrencyStatus.currency.decimals,
                         symbol = value.cryptoCurrencyStatus.currency.symbol,
                     ),

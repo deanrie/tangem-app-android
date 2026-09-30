@@ -106,6 +106,23 @@ internal class DefaultWcRespondService : WcRespondService {
         )
     }
 
+    override fun respondNonBlock(request: WcSdkSessionRequest, response: String) {
+        TangemLogger.withTag(WC_TAG).i("respond without user interaction to request $request")
+        WalletKit.respondSessionRequest(
+            params = Wallet.Params.SessionRequestResponse(
+                sessionTopic = request.topic,
+                jsonRpcResponse = Wallet.Model.JsonRpcResponse.JsonRpcResult(
+                    id = request.request.id,
+                    result = response,
+                ),
+            ),
+            onSuccess = {},
+            onError = { error ->
+                TangemLogger.withTag(WC_TAG).e("Failed respond for request $request", error.throwable)
+            },
+        )
+    }
+
     private fun removeCachedRequest(request: WcSdkSessionRequest) {
         cachedRequest.update { set ->
             set.filterTo(mutableSetOf()) { (_, hash) -> hash != sessionRequestHash(request) }

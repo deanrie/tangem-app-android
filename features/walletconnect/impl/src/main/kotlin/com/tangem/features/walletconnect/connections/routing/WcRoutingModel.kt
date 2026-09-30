@@ -9,6 +9,7 @@ import com.tangem.domain.walletconnect.WcPairService
 import com.tangem.domain.walletconnect.WcRequestService
 import com.tangem.domain.walletconnect.model.WcBitcoinMethodName
 import com.tangem.domain.walletconnect.model.WcEthMethodName
+import com.tangem.domain.walletconnect.model.WcHederaMethodName
 import com.tangem.domain.walletconnect.model.WcMethodName
 import com.tangem.domain.walletconnect.model.WcSolanaMethodName
 import com.tangem.utils.coroutines.CoroutineDispatcherProvider
@@ -48,6 +49,7 @@ internal class WcRoutingModel @Inject constructor(
                     WcEthMethodName.SignTypeDataV4,
                     WcSolanaMethodName.SignMessage,
                     WcBitcoinMethodName.SignMessage,
+                    WcHederaMethodName.SignMessage,
                     -> {
                         WcInnerRoute.SignMessage(rawRequest)
                     }
@@ -66,6 +68,8 @@ internal class WcRoutingModel @Inject constructor(
                     WcSolanaMethodName.SendAllTransaction,
                     WcBitcoinMethodName.SendTransfer,
                     WcBitcoinMethodName.SignPsbt,
+                    WcHederaMethodName.SignAndExecuteTransaction,
+                    WcHederaMethodName.SignTransaction,
                     -> {
                         WcInnerRoute.Send(rawRequest)
                     }
@@ -73,6 +77,8 @@ internal class WcRoutingModel @Inject constructor(
                     -> {
                         WcInnerRoute.GetAddresses(rawRequest)
                     }
+                    // Answered by WcHederaNetwork before the request reaches this queue; never routed.
+                    WcHederaMethodName.GetNodeAddresses,
                     is WcMethodName.Unsupported,
                     -> {
                         WcInnerRoute.UnsupportedMethodAlert
