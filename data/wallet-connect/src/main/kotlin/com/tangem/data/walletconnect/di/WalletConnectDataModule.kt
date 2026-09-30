@@ -8,6 +8,7 @@ import com.tangem.core.analytics.api.AnalyticsExceptionHandler
 import com.tangem.data.walletconnect.DefaultWalletConnectRepository
 import com.tangem.data.walletconnect.initialize.DefaultWcInitializeUseCase
 import com.tangem.data.walletconnect.network.bitcoin.WcBitcoinNetwork
+import com.tangem.data.walletconnect.network.tron.WcTronNetwork
 import com.tangem.data.walletconnect.network.ethereum.WcEthNetwork
 import com.tangem.data.walletconnect.network.solana.WcSolanaNetwork
 import com.tangem.data.walletconnect.pair.*
@@ -187,6 +188,20 @@ internal object WalletConnectDataModule {
 
     @Provides
     @Singleton
+    fun wcTronNetwork(
+        @SdkMoshi moshi: Moshi,
+        wcNetworksConverter: WcNetworksConverter,
+        sessionsManager: WcSessionsManager,
+        factories: WcTronNetwork.Factories,
+    ): WcTronNetwork = WcTronNetwork(
+        moshi = moshi,
+        sessionsManager = sessionsManager,
+        factories = factories,
+        networksConverter = wcNetworksConverter,
+    )
+
+    @Provides
+    @Singleton
     fun caipNamespaceDelegate(
         namespaceConverters: Set<@JvmSuppressWildcards WcNamespaceConverter>,
         wcNetworksConverter: WcNetworksConverter,
@@ -225,6 +240,7 @@ internal object WalletConnectDataModule {
         ethNetwork: WcEthNetwork,
         solanaNetwork: WcSolanaNetwork,
         bitcoinNetwork: WcBitcoinNetwork,
+        tronNetwork: WcTronNetwork,
         featureToggles: WalletConnectFeatureToggles,
     ) = DiHelperBox(
         handlers = buildSet {
@@ -232,6 +248,9 @@ internal object WalletConnectDataModule {
             add(solanaNetwork)
             if (featureToggles.isBitcoinEnabled) {
                 add(bitcoinNetwork)
+            }
+            if (featureToggles.isTronEnabled) {
+                add(tronNetwork)
             }
         },
     )
@@ -242,12 +261,16 @@ internal object WalletConnectDataModule {
         ethNamespaceConverter: WcEthNetwork.NamespaceConverter,
         solanaNamespaceConverter: WcSolanaNetwork.NamespaceConverter,
         bitcoinNamespaceConverter: WcBitcoinNetwork.NamespaceConverter,
+        tronNamespaceConverter: WcTronNetwork.NamespaceConverter,
         featureToggles: WalletConnectFeatureToggles,
     ): Set<@JvmSuppressWildcards WcNamespaceConverter> = buildSet {
         add(ethNamespaceConverter)
         add(solanaNamespaceConverter)
         if (featureToggles.isBitcoinEnabled) {
             add(bitcoinNamespaceConverter)
+        }
+        if (featureToggles.isTronEnabled) {
+            add(tronNamespaceConverter)
         }
     }
 
@@ -281,6 +304,14 @@ internal object WalletConnectDataModule {
         excludedBlockchains: ExcludedBlockchains,
     ): WcBitcoinNetwork.NamespaceConverter {
         return WcBitcoinNetwork.NamespaceConverter(excludedBlockchains)
+    }
+
+    @Provides
+    @Singleton
+    fun wcTronNetworkNamespaceConverter(
+        excludedBlockchains: ExcludedBlockchains,
+    ): WcTronNetwork.NamespaceConverter {
+        return WcTronNetwork.NamespaceConverter(excludedBlockchains)
     }
 
     @Provides

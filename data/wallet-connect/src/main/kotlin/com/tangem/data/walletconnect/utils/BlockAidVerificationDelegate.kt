@@ -11,6 +11,7 @@ import com.tangem.domain.walletconnect.model.WcEthMethod
 import com.tangem.domain.walletconnect.model.WcMethod
 import com.tangem.domain.walletconnect.model.WcSession
 import com.tangem.domain.walletconnect.model.WcSolanaMethod
+import com.tangem.domain.walletconnect.model.WcTronMethod
 import com.tangem.domain.walletconnect.model.sdkcopy.WcSdkSessionRequest
 import com.tangem.utils.logging.TangemLogger
 import kotlinx.coroutines.flow.flow
@@ -43,6 +44,7 @@ internal class BlockAidVerificationDelegate @Inject constructor(
             is WcEthMethod -> rawSdkRequest.request.method
             is WcSolanaMethod -> method.trimmedPrefixMethodName
             is WcBitcoinMethod -> rawSdkRequest.request.method
+            is WcTronMethod -> rawSdkRequest.request.method
             is WcMethod.Unsupported -> {
                 emit(Lce.Content(failedResult))
                 return@flow
@@ -59,8 +61,8 @@ internal class BlockAidVerificationDelegate @Inject constructor(
                 emit(Lce.Content(createSafeResult()))
                 return@flow
             }
-            is WcBitcoinMethod -> {
-                // BlockAid doesn't support Bitcoin methods: don't synthesize a SAFE result for an unscanned
+            is WcBitcoinMethod, is WcTronMethod -> {
+                // BlockAid doesn't support Bitcoin or Tron methods: don't synthesize a SAFE result for an unscanned
                 // transaction
                 emit(Lce.Content(failedResult))
                 return@flow

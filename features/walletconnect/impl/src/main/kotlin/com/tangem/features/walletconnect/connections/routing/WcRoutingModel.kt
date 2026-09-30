@@ -11,6 +11,7 @@ import com.tangem.domain.walletconnect.model.WcBitcoinMethodName
 import com.tangem.domain.walletconnect.model.WcEthMethodName
 import com.tangem.domain.walletconnect.model.WcMethodName
 import com.tangem.domain.walletconnect.model.WcSolanaMethodName
+import com.tangem.domain.walletconnect.model.WcTronMethodName
 import com.tangem.utils.coroutines.CoroutineDispatcherProvider
 import kotlinx.coroutines.flow.*
 import com.tangem.utils.logging.TangemLogger
@@ -48,6 +49,7 @@ internal class WcRoutingModel @Inject constructor(
                     WcEthMethodName.SignTypeDataV4,
                     WcSolanaMethodName.SignMessage,
                     WcBitcoinMethodName.SignMessage,
+                    WcTronMethodName.SignMessage,
                     -> {
                         WcInnerRoute.SignMessage(rawRequest)
                     }
@@ -66,6 +68,7 @@ internal class WcRoutingModel @Inject constructor(
                     WcSolanaMethodName.SendAllTransaction,
                     WcBitcoinMethodName.SendTransfer,
                     WcBitcoinMethodName.SignPsbt,
+                    WcTronMethodName.SignTransaction,
                     -> {
                         WcInnerRoute.Send(rawRequest)
                     }

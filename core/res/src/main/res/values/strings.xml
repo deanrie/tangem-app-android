@@ -3340,6 +3340,9 @@
   <string name="wc_transaction_info_to_title">To</string>
   <string name="wc_transaction_request">Transaction request</string>
   <string name="wc_transaction_request_title">Transaction request</string>
+  <string name="wc_tron_call_data">Call data</string>
+  <string name="wc_tron_contract">Contract</string>
+  <string name="wc_tron_fee_limit">Fee limit</string>
   <string name="wc_unlimited_amount">Unlimited Amount</string>
   <string name="wc_uri_already_used_description">Ensure that each pairing attempt uses a fresh and unique URI</string>
   <string name="wc_uri_already_used_title">URI already used</string>

@@ -29,6 +29,7 @@ internal class WcSendTransactionUMConverter @Inject constructor(
     private val requestBlockUMConverter: WcTransactionRequestBlockUMConverter,
     private val btcSendTransferRequestInfoConverter: WcBtcSendTransferRequestInfoConverter,
     private val signPsbtRequestInfoConverter: WcSignPsbtRequestInfoConverter,
+    private val tronSignTransactionRequestInfoConverter: WcTronSignTransactionRequestInfoConverter,
     private val notificationsFactory: WcNotificationsFactory,
 ) : Converter<WcSendTransactionUMConverter.Input, WcSendTransactionUM?> {
 
@@ -47,6 +48,7 @@ internal class WcSendTransactionUMConverter @Inject constructor(
             is WcBitcoinMethod.SignPsbt,
             is WcSolanaMethod.SignAndSendTransaction,
             is WcBitcoinMethod.SignMessage,
+            is WcTronMethod.SignTransaction,
             -> WcSendTransactionUM(
                 transaction = WcSendTransactionItemUM(
                     onDismiss = value.actions.onDismiss,
@@ -90,6 +92,7 @@ internal class WcSendTransactionUMConverter @Inject constructor(
             is WcEthMethod.SwitchEthereumChain,
             is WcMethod.Unsupported,
             is WcSolanaMethod.SignMessage,
+            is WcTronMethod.SignMessage,
             -> null
         }
     }
@@ -105,6 +108,17 @@ internal class WcSendTransactionUMConverter @Inject constructor(
             add(
                 btcSendTransferRequestInfoConverter.convert(
                     WcBtcSendTransferRequestInfoConverter.Input(
+                        method = method,
+                        decimals = value.cryptoCurrencyStatus.currency.decimals,
+                        symbol = value.cryptoCurrencyStatus.currency.symbol,
+                    ),
+                ),
+            )
+        }
+        if (method is WcTronMethod.SignTransaction) {
+            add(
+                tronSignTransactionRequestInfoConverter.convert(
+                    WcTronSignTransactionRequestInfoConverter.Input(
                         method = method,
                         decimals = value.cryptoCurrencyStatus.currency.decimals,
                         symbol = value.cryptoCurrencyStatus.currency.symbol,
